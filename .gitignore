@@ -1,0 +1,13 @@
+NOTES.md
+
+# Node modules
+node_modules
+
+# Adonis directory for storing tmp files
+tmp
+
+# Environment variables, never commit this file
+.env
+
+# The development sqlite file
+ecommerce-adonis/database/*.sqlite
