@@ -5,6 +5,10 @@ const Model = use('Model')
 
 class Discount extends Model {
 
+  static get traits () {
+    return ['App/Models/Traits/NoTimestamp']
+  }
+
   static get table () {
     return 'coupon_order'
   }
