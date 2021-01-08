@@ -12,7 +12,7 @@ class OrderItemSchema extends Schema {
       table.integer('quantity').unsigned()
       table.decimal('subtotal', 12, 2)
 
-      table.foreign('image_id').references('id').inTable('images').onDelete('cascade')
+      table.foreign('product_id').references('id').inTable('products').onDelete('cascade')
       table.foreign('order_id').references('id').inTable('orders').onDelete('cascade')
     })
   }
