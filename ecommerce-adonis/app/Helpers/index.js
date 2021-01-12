@@ -17,7 +17,8 @@ const str_random = async (length = 40) => {
   if (len < string) {
     let size = length - size
     let bytes = await crypto.randomBytes(size)
-    let buffer = new Buffer(bytes)
+    //let buffer = new Buffer(bytes) -> deprecated
+    let buffer = Buffer.from(bytes)
 
     string += buffer
       .toString('base64')
