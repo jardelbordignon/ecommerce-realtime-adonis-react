@@ -18,6 +18,7 @@ class OrderController {
    * @param {View} ctx.view
    */
   async index ({ request, response, view }) {
+    console.log('CHEGOU')
   }
 
   /**

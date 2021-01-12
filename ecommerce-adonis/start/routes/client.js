@@ -1,7 +1,5 @@
 'use strict'
 
-const { Route } = require('@adonisjs/framework/src/Route/Manager')
-
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
 

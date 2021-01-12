@@ -6,8 +6,9 @@
   "main": "index.js",
   "scripts": {
     "inspect": "node --inspect server.js",
-    "debug": "adonis serve --dev --debug",
+    "dev": "adonis serve --dev --debug",
     "start": "node server.js",
+    "ns": "nodemon server.js",
     "test": "node ace test"
   },
   "keywords": [
@@ -33,7 +34,9 @@
     "adonis-bumblebee": "^2.2.0",
     "mysql": "^2.18.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  },
   "autoload": {
     "App": "./app"
   }
