@@ -5,7 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
 const Coupon = use('App/Models/Coupon')
-const CouponService = use('App/Services/Coupon/CouponService')
+const CouponService = use('App/Services/CouponService')
 const Database = use('Database')
 
 /**
