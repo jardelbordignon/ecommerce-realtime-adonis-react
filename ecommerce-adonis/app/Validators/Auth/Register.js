@@ -1,6 +1,6 @@
 'use strict'
 
-class RegisterValidator {
+class AuthRegister {
   get rules () {
     return {
       name: 'required',
@@ -11,4 +11,4 @@ class RegisterValidator {
   }
 }
 
-module.exports = RegisterValidator
+module.exports = AuthRegister

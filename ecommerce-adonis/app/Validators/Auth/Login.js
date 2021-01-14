@@ -1,6 +1,6 @@
 'use strict'
 
-class LoginValidator {
+class AuthLogin {
   get rules () {
     return {
       email: 'required|email',
@@ -9,4 +9,4 @@ class LoginValidator {
   }
 }
 
-module.exports = LoginValidator
+module.exports = AuthLogin

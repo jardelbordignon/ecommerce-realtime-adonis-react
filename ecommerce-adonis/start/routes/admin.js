@@ -8,6 +8,9 @@ Route.group(() => {
 
   // Category
   Route.resource('categories', 'CategoryController').apiOnly()
+    .validator(new Map([
+      [['categories.store', 'categories.update'], ['Admin/CategoryStore']],
+    ]))
 
   // Coupon
   Route.resource('coupons', 'CouponController').apiOnly()
