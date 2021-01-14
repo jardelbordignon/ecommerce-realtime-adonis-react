@@ -4,6 +4,8 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
+const Discount = use('App/Models/Discount')
+const Coupon = use('App/Models/Coupon')
 const Order = use('App/Models/Order')
 const OrderService = use('App/Services/OrderService')
 const Database = use('Database')
@@ -125,6 +127,48 @@ class OrderController {
       return response.status(400).send({ message: 'Erro ao deletar o pedido' })
     }
   }
+
+
+  async applyDiscount({ params, request, response }) {
+    const { code } = request.all()
+    const coupon = Coupon.findByOrFail('code', code.toUpperCase())
+    const order = Order.findOrFail(params.id)
+
+    let discount = {}, info = {}
+    try {
+      const service = new OrderService(order)
+      const canAddDiscount = await service.canApplyDiscount(cupom)
+      const orderDiscounts = await order.coupons().getCount()
+
+      const canApplyToOrder = canAddDiscount && (!orderDiscounts || cupom.recursive)
+
+      if (canApplyToOrder) {
+        discount = await Discount.findOrCreate({
+          order_id: order.id,
+          coupon_id: coupon.id
+          // valor será calculado pelo DiscountHook
+        })
+        info = { message: 'Cupom aplicado com sucesso', success: true }
+      } else {
+        info = { message: 'Não foi possível aplicar esse cupom', success: false }
+      }
+
+      return response.send({ order, info })
+
+    } catch (error) {
+      return response.status(400).send({ message: 'Erro ao aplicar desconto'})
+    }
+
+  }
+
+
+  async removeDiscount({ request, response }) {
+    const { discount_id } = request.all()
+    const discount = await Discount.findOrFail(discount_id)
+    await discount.delete()
+    return response.status(204).send()
+  }
+
 }
 
 module.exports = OrderController
