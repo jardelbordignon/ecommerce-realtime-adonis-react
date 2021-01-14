@@ -4,6 +4,9 @@
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 
+const Order = use('App/Models/Order')
+const OrderService = use('App/Services/OrderService')
+const Database = use('Database')
 /**
  * Resourceful controller for interacting with orders
  */
@@ -15,22 +18,22 @@ class OrderController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
+   * @param {Pagination} ctx.pagination
    */
-  async index ({ request, response, view }) {
+  async index ({ request, response, pagination }) {
+    const { status, id } = request.only(['status', 'id'])
+    const query = Order.query()
+
+    if (status && id) {
+      query.where('status', status)
+      query.orWhere('id', id)
+    }
+    else if (status)
+      query.where('status', status)
+    else if (id)
+      query.where('id', id)
   }
 
-  /**
-   * Render a form to be used for creating a new order.
-   * GET orders/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
-  }
 
   /**
    * Create/save a new order.
@@ -41,6 +44,21 @@ class OrderController {
    * @param {Response} ctx.response
    */
   async store ({ request, response }) {
+    const trx = await Database.beginTransaction()
+    try {
+      const { user_id, items, status } = request.all()
+      const order = Order.create({ user_id, status }, trx)
+      const service = OrderService(order, trx)
+
+      if (items && !!items.length)
+        await service.syncItems(items)
+
+      await trx.commit()
+      return response.status(201).send(order)
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({ message: 'Erro ao registar o pedido'})
+    }
   }
 
   /**
@@ -50,21 +68,10 @@ class OrderController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-  }
-
-  /**
-   * Render a form to update an existing order.
-   * GET orders/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
+  async show ({ params, response }) {
+    const order = Order.findOrFail(params.id)
+    return response.send(order)
   }
 
   /**
@@ -76,6 +83,22 @@ class OrderController {
    * @param {Response} ctx.response
    */
   async update ({ params, request, response }) {
+    const order = Order.findOrFail(params.id)
+    const trx = await Database.beginTransaction()
+
+    try {
+      const { user_id, items, status } = request.all()
+      order.merge({ user_id, status })
+      const service = new OrderService(order, trx)
+      await service.updateItems(items)
+      await order.save(trx)
+      await trx.commit()
+      return response.send(order)
+
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({ message: 'Erro ao editar pedido'})
+    }
   }
 
   /**
@@ -87,6 +110,20 @@ class OrderController {
    * @param {Response} ctx.response
    */
   async destroy ({ params, request, response }) {
+    const order = Order.findOrFail(params.id)
+    const trx = await Database.beginTransaction()
+
+    try {
+      await order.items().delete(trx)
+      await order.coupons().delete(trx)
+      await order.delete(trx)
+      await trx.commit()
+      return response.status(204).send()
+
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({ message: 'Erro ao deletar o pedido' })
+    }
   }
 }
 
