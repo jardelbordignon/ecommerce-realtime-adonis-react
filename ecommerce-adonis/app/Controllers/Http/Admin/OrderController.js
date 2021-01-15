@@ -34,6 +34,9 @@ class OrderController {
       query.where('status', status)
     else if (id)
       query.where('id', id)
+
+    const orders = await query.paginate(pagination.page, pagination.perPage)
+    return response.send(orders)
   }
 
 

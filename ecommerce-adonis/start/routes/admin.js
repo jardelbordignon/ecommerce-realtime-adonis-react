@@ -21,7 +21,7 @@ Route.group(() => {
   // Order
   Route.post('orders/:id/discount', 'OrderController.applyDiscount')
   Route.delete('orders/:id/discount', 'OrderController.removeDiscount')
-  Route.resource('order', 'OrderController').apiOnly()
+  Route.resource('orders', 'OrderController').apiOnly()
     .validator(new Map([
       [['orders.store'], ['Admin/OrderStore']]
     ]))
@@ -31,9 +31,9 @@ Route.group(() => {
 
   // User
   Route.resource('users', 'UserController').apiOnly()
-    .validator([
+    .validator(new Map([
       [['users.store', 'users.update'], ['Admin/UserStore']]
-    ])
+    ]))
 })
 .prefix('v1/admin')
 .namespace('Admin')
