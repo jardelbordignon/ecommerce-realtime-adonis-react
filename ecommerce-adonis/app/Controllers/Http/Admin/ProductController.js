@@ -1,26 +1,29 @@
 'use strict'
 
 const Product = use('App/Models/Product')
+const Transformer  = use('App/Transformers/Admin/ProductTransformer')
 
 class ProductController {
 
-  async index ({ request, response, pagination }) {
+  async index ({ request, response, pagination, transform }) {
     const name = request.input('name')
     const query = Product.query()
 
     if (name)
       query.where('name', 'LIKE', `%${name}%`)
 
-    const products = await query.paginate(pagination.page, pagination.perPage)
+    let products = await query.paginate(pagination.page, pagination.perPage)
+    products = await transform.paginate(products, Transformer)
 
     return response.send(products)
   }
 
 
-  async store ({ request, response }) {
+  async store ({ request, response, transform }) {
     try {
       const { name, description, price, image_id } = request.all()
-      const product = await Product.create({ name, description, price, image_id })
+      let product = await Product.create({ name, description, price, image_id })
+      product = await transform.items(product, Transformer)
       return response.status(201).send(product)
 
     } catch (error) {
@@ -29,19 +32,20 @@ class ProductController {
   }
 
 
-  async show ({ params, request, response }) {
-    const product = await Product.findOrFail(params.id)
+  async show ({ params, response, transform }) {
+    let product = await Product.findOrFail(params.id)
+    product = await transform.items(product, Transformer)
     return response.send(product)
   }
 
 
-  async update ({ params, request, response }) {
+  async update ({ params, request, response, transform }) {
+    let product = await Product.findOrFail(params.id)
     try {
-      const product = await Product.findOrFail(params.id)
       const { name, description, price, image_id } = request.all()
-
       product.merge({ name, description, price, image_id })
       await product.save()
+      product = await transform.items(product, Transformer)
 
       return response.send(product)
 
