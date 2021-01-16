@@ -53,7 +53,7 @@ class OrderController {
     try {
       const { user_id, items, status } = request.all()
       const order = Order.create({ user_id, status }, trx)
-      const service = OrderService(order, trx)
+      const service = new OrderService(order, trx)
 
       if (items && !!items.length)
         await service.syncItems(items)

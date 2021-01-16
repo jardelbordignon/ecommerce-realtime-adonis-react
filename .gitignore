@@ -1,5 +1,6 @@
 NOTES.md
 
+.vscode/*.json
 # Node modules
 node_modules
 
