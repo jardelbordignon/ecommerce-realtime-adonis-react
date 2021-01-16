@@ -23,7 +23,7 @@ class ProductController {
     try {
       const { name, description, price, image_id } = request.all()
       let product = await Product.create({ name, description, price, image_id })
-      product = await transform.items(product, Transformer)
+      product = await transform.item(product, Transformer)
       return response.status(201).send(product)
 
     } catch (error) {
@@ -34,7 +34,7 @@ class ProductController {
 
   async show ({ params, response, transform }) {
     let product = await Product.findOrFail(params.id)
-    product = await transform.items(product, Transformer)
+    product = await transform.item(product, Transformer)
     return response.send(product)
   }
 
