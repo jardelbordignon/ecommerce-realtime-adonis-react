@@ -3,19 +3,21 @@
 const Image = use('App/Models/Image')
 const { manage_single_upload, manage_multiple_upload } = use('App/Helpers')
 const fs = use('fs')
+const Transformer = use('App/Models/Transformers/Admin/ImageTransformer')
 
 class ImageController {
 
-  async index ({ response, pagination }) {
-    const images = await Image.query()
+  async index ({ response, pagination, transform }) {
+    let images = await Image.query()
       .orderBy('id', 'DESC')
       .paginate(pagination.page, pagination.perPage)
 
+    images = await transform.paginate(images, Transformer)
     return response.send(images)
   }
 
 
-  async store ({ request, response }) {
+  async store ({ request, response, transform }) {
     try {
       const fileJar = request.file('images', { types: ['image'], size: '2mb' })
 
@@ -31,7 +33,9 @@ class ImageController {
             extension: file.subtype
           })
 
-          images.push(image)
+          const transformedImage = await transform.item(image, transform)
+
+          images.push(transformedImage)
 
           return response.status(201).send({ successes: images, errors: {} })
         }
@@ -49,7 +53,9 @@ class ImageController {
             extension: file.subtype
           })
 
-          images.push(image)
+          const transformedImage = await transform.item(image, transform)
+
+          images.push(transformedImage)
         })
       }
 
@@ -61,24 +67,28 @@ class ImageController {
   }
 
 
-  async show ({ params, request, response }) {
-    const image = await Image.findOrFail(params.id)
+  async show ({ params, response, transform }) {
+    let image = await Image.findOrFail(params.id)
+    image = await transform.item(image, transform)
     return response.send(image)
   }
 
 
-  async update ({ params, request, response }) {
-    const image = await Image.findOrFail(params.id)
+  async update ({ params, request, response, transform }) {
+    let image = await Image.findOrFail(params.id)
     try {
       const original_name = request.input('original_name')
       image.merge({ original_name })
+      await image.save()
+      image = await transform.item(image, transform)
+      return response.status(200).send(image)
     } catch (error) {
       return response.status(400).send({ message: 'Erro ao editar a imagem'})
     }
   }
 
 
-  async destroy ({ params, request, response }) {
+  async destroy ({ params, response }) {
     const image = await Image.findOrFail(params.id)
     try {
       const filePath = Helpers.publicPath(`uploads/${image.path}`)
