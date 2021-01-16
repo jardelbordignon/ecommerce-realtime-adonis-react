@@ -1,11 +1,12 @@
 'use strict'
 
 const User = use('App/Models/User')
+const Transformer = use('App/Transformers/Admin/UserTransformer')
 
 class UserController {
 
 
-  async index ({ request, response, pagination }) {
+  async index ({ request, response, pagination, transform }) {
     const name = request.input('name')
     const query = User.query()
 
@@ -15,16 +16,18 @@ class UserController {
       query.orWhere('email', 'LIKE', `%${name}%`)
     }
 
-    const users = await query.paginate(pagination.page, pagination.perPage)
+    let users = await query.paginate(pagination.page, pagination.perPage)
+    users = await transform.paginate(users, Transformer)
 
     return response.send(users)
   }
 
 
-  async store ({ request, response }) {
+  async store ({ request, response, transform }) {
     try {
       const userData = request.only(['name', 'surname', 'email', 'password', 'image_id'])
-      const user = await User.create(userData)
+      let user = await User.create(userData)
+      user = await transform.item(user, Transformer)
       return response.status(201).send(user)
 
     } catch (error) {
@@ -36,19 +39,21 @@ class UserController {
   }
 
 
-  async show ({ params, response }) {
-    const user = await User.findOrFail(params.id)
+  async show ({ params, response, transform }) {
+    let user = await User.findOrFail(params.id)
+    user = await transform.item(user, Transformer)
     return response.send(user)
   }
 
 
   async update ({ params, request, response }) {
     try {
-      const user = await User.findOrFail(params.id)
+      let user = await User.findOrFail(params.id)
       const userData = request.only(['name', 'surname', 'email', 'password', 'image_id'])
 
       user.merge(userData)
       await user.save()
+      user = await transform.item(user, Transformer)
 
       return response.send(user)
 
