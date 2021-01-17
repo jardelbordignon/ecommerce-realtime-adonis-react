@@ -63,7 +63,7 @@ class OrderController {
 
       await trx.commit()
       order = await Order.find(order.id)
-      order = await transform.item(order, Transformer)
+      order = await transform.include('user, items').item(order, Transformer)
       return response.status(201).send(order)
     } catch (error) {
       await trx.rollback()
@@ -81,7 +81,9 @@ class OrderController {
    */
   async show ({ params, response, transform }) {
     let order = Order.findOrFail(params.id)
-    order = await transform.item(order, Transformer)
+    order = await transform
+      .include('user, items, discounts')
+      .item(order, Transformer)
     return response.send(order)
   }
 
@@ -104,7 +106,9 @@ class OrderController {
       await service.updateItems(items)
       await order.save(trx)
       await trx.commit()
-      order = await transform.item(order, Transformer)
+      order = await transform
+        .include('user, items, discounts, coupons')
+        .item(order, Transformer)
       return response.send(order)
 
     } catch (error) {
@@ -139,10 +143,10 @@ class OrderController {
   }
 
 
-  async applyDiscount({ params, request, response }) {
+  async applyDiscount({ params, request, response, transform }) {
     const { code } = request.all()
     const coupon = Coupon.findByOrFail('code', code.toUpperCase())
-    const order = Order.findOrFail(params.id)
+    let order = Order.findOrFail(params.id)
 
     let discount = {}, info = {}
     try {
@@ -163,7 +167,11 @@ class OrderController {
         info = { message: 'Não foi possível aplicar esse cupom', success: false }
       }
 
-      return response.send({ order, info, discount })
+      order = await transform
+        .include('user, items, discounts, coupons')
+        .item({ order, info })
+
+      return response.send({ order, info })
 
     } catch (error) {
       return response.status(400).send({ message: 'Erro ao aplicar o cupom de desconto'})
