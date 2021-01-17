@@ -22,6 +22,11 @@ Route.get('/v1', () => {
   return { database: 'version 1' }
 })
 
+/**
+ * Retorna o usuário logado atualmente
+*/
+Route.get('/v1/me', 'UserController.me').as('me').middleware('auth')
+
 require('./auth')
 require('./admin')
 require('./client')

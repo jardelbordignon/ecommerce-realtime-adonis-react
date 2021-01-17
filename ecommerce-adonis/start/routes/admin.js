@@ -6,6 +6,9 @@ const Route = use('Route')
 Route.group(() => {
   // resource routes (crud)
 
+  // Dashboard
+  Route.get('dashboard', 'DashboardController.index').as('dashboard')
+
   // Category
   Route.resource('categories', 'CategoryController').apiOnly()
     .validator(new Map([
