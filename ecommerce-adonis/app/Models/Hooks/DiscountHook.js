@@ -11,7 +11,7 @@ DiscountHook.calculateValues = async model => {
   model.discount = 0
 
   const coupon = await Coupon.find(model.coupon_id)
-  const order  = await Coupon.find(model.order_id)
+  const order  = await Order.find(model.order_id)
 
   switch (coupon.can_use_for) {
     case 'product_client' || 'product':
@@ -22,12 +22,12 @@ DiscountHook.calculateValues = async model => {
       .where('order_id', model.order_id)
       .whereIn('product_id', couponProducts)
 
-      if (coupon.type === 'percent') {
+      if (coupon.type == 'percent') {
         for (let orderItem of discountItems) {
           model.discount += (orderItem.subtotal / 100) * coupon.discount
         }
       }
-      else if (coupon.type === 'currency') {
+      else if (coupon.type == 'currency') {
         for (let orderItem of discountItems) {
           model.discount += orderItem.quantity * coupon.discount
         }
@@ -40,15 +40,17 @@ DiscountHook.calculateValues = async model => {
       break
 
     default:
-      if (coupon.type === 'percent') {
+      if (coupon.type == 'percent') {
         model.discount = (order.subtotal / 100) * coupon.discount
-      } else if (coupon.type === 'currency') {
+      } else if (coupon.type == 'currency') {
         model.discount = coupon.discount
       } else {
         model.discount = order.subtotal
       }
       break
   }
+
+  return model
 }
 
 // decrementa a quantidade de cupons disponíveis para uso

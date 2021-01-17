@@ -55,14 +55,15 @@ class OrderController {
     const trx = await Database.beginTransaction()
     try {
       const { user_id, items, status } = request.all()
-      let order = Order.create({ user_id, status }, trx)
+      let order = await Order.create({ user_id, status }, trx)
       const service = new OrderService(order, trx)
 
       if (items && !!items.length)
         await service.syncItems(items)
 
       await trx.commit()
-      order = await transform.items(order, Transformer)
+      order = await Order.find(order.id)
+      order = await transform.item(order, Transformer)
       return response.status(201).send(order)
     } catch (error) {
       await trx.rollback()
@@ -80,7 +81,7 @@ class OrderController {
    */
   async show ({ params, response, transform }) {
     let order = Order.findOrFail(params.id)
-    order = await transform.items(order, Transformer)
+    order = await transform.item(order, Transformer)
     return response.send(order)
   }
 
@@ -92,7 +93,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ params, request, response, transform }) {
     let order = Order.findOrFail(params.id)
     const trx = await Database.beginTransaction()
 
@@ -103,7 +104,7 @@ class OrderController {
       await service.updateItems(items)
       await order.save(trx)
       await trx.commit()
-      order = await transform.items(order, Transformer)
+      order = await transform.item(order, Transformer)
       return response.send(order)
 
     } catch (error) {
@@ -162,10 +163,10 @@ class OrderController {
         info = { message: 'Não foi possível aplicar esse cupom', success: false }
       }
 
-      return response.send({ order, info })
+      return response.send({ order, info, discount })
 
     } catch (error) {
-      return response.status(400).send({ message: 'Erro ao aplicar desconto'})
+      return response.status(400).send({ message: 'Erro ao aplicar o cupom de desconto'})
     }
 
   }

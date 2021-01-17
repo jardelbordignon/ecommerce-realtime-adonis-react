@@ -45,7 +45,7 @@ class ProductController {
       const { name, description, price, image_id } = request.all()
       product.merge({ name, description, price, image_id })
       await product.save()
-      product = await transform.items(product, Transformer)
+      product = await transform.item(product, Transformer)
 
       return response.send(product)
 

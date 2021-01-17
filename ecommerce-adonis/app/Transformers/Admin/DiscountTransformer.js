@@ -2,7 +2,7 @@
 
 const BumblebeeTransformer = use('Bumblebee/Transformer')
 
-const DiscountTransformer = use('App/Transformers/Admin/DiscountTransformer')
+const CouponTransformer = use('App/Transformers/Admin/CouponTransformer')
 /**
  * DiscountTransformer class
  *
@@ -27,7 +27,7 @@ class DiscountTransformer extends BumblebeeTransformer {
 
 
   includeCoupon (discount) {
-    return this.item(discount.getRelated('coupon'), DiscountTransformer)
+    return this.item(discount.getRelated('coupon'), CouponTransformer)
   }
 
 }

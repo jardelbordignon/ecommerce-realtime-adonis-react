@@ -4,8 +4,8 @@ const Database = use('Database')
 
 class OrderService {
 
-  constructor(model, trx = false) {
-    this.model = model
+  constructor(order, trx = false) {
+    this.order = order
     this.trx = trx
   }
 
@@ -13,17 +13,17 @@ class OrderService {
   async syncItems(items) {
     if (!Array.isArray(items)) return false
 
-    await this.model.items().delete(this.trx)
-    await this.model.items().createMany(items, this.trx)
+    await this.order.items().delete(this.trx)
+    await this.order.items().createMany(items, this.trx)
   }
 
 
   async updateItens(items) {
-    await this.model.items()
+    await this.order.items()
       .whereNotIn('id', items.map(item => item.id))
       .delete(trx)
 
-    const currentItems = await this.model.items()
+    const currentItems = await this.order.items()
       .whereIn('id', items.map(item => item.id))
       .fetch()
 
@@ -55,12 +55,12 @@ class OrderService {
       // [1, 2]
 
     const couponClients = await Database.from('coupon_user')
-    .where('coupon_id', coupon.id)
-    .pluck('product_id')
+      .where('coupon_id', coupon.id)
+      .pluck('user_id')
 
 
-    const hasCouponProducts = !Array.isArray(couponProducts) && !!couponProducts.length
-    const hasCouponClients = !Array.isArray(couponClients) && !!couponClients.length
+    const hasCouponProducts = !!Array.isArray(couponProducts) && !!couponProducts.length
+    const hasCouponClients = !!Array.isArray(couponClients) && !!couponClients.length
 
     // se o cupon NÃO está associado a produtos e/ou clientes específicos
     if (!hasCouponProducts && !hasCouponClients) {
@@ -69,18 +69,18 @@ class OrderService {
 
     // pegando os IDs dos produtos do pedido
     const productsMatch = await Database.from('order_items')
-      .where('order_id', this.model.id)
+      .where('order_id', this.order.id)
       .whereIn('product_id', couponProducts)
       .pluck('product_id')
 
 
-    const hasProductsMatch = !Array.isArray(productsMatch) && !!productsMatch.length
+    const hasProductsMatch = !!Array.isArray(productsMatch) && !!productsMatch.length
 
     /**
      * caso de uso 1 -> O cupom está associado a clientes e produtos
      */
     if (hasCouponProducts && hasCouponClients) {
-      const clientMatch = couponClients.find(client => client === this.model.user_id )
+      const clientMatch = couponClients.find(client => client === this.order.user_id )
 
       if (clientMatch && hasProductsMatch) return true
     }
@@ -94,7 +94,7 @@ class OrderService {
      * caso de uso 3 -> O cupom está associado apenas a 1 ou mais clientes
      */
     if (hasCouponClients) {
-      const clientMatch = couponClients.find(client => client === this.model.user_id )
+      const clientMatch = couponClients.find(client => client === this.order.user_id )
       if (clientMatch) return true
     }
 

@@ -23,7 +23,7 @@ Route.group(() => {
   Route.delete('orders/:id/discount', 'OrderController.removeDiscount')
   Route.resource('orders', 'OrderController').apiOnly()
     .validator(new Map([
-      [['orders.store'], ['Admin/OrderStore']]
+      [['orders.store', 'orders.update'], ['Admin/OrderStore']]
     ]))
 
   // Product
